@@ -27,12 +27,6 @@ export default function DashboardScreen({
 }) {
     const [search, setSearch] = useState("");
     const [activeFilter, setActiveFilter] = useState("All");
-<<<<<<< HEAD
-
-=======
-    console.log("Doctors received:", doctors);
-    console.log("Doctors length:", doctors.length);
->>>>>>> 05f88294cfa5a9d1c32e9e91cd72e9b443e09fd1
 
     const specializations = [
         "All",
@@ -129,7 +123,6 @@ export default function DashboardScreen({
                 {/* ── Quick action cards ── */}
                 <View style={styles.quickRow}>
                     <TouchableOpacity
-<<<<<<< HEAD
     style={styles.quickCard}
     onPress={() => {
         console.log("Book button clicked");
@@ -137,12 +130,6 @@ export default function DashboardScreen({
     }}
     activeOpacity={0.8}
 >
-=======
-                        style={styles.quickCard}
-                        onPress={goToBookAppointment}
-                        activeOpacity={0.8}
-                    >
->>>>>>> 05f88294cfa5a9d1c32e9e91cd72e9b443e09fd1
                         <AppCard style={styles.quickCardInner}>
                             <Text style={styles.quickIcon}>＋</Text>
                             <Text style={styles.quickTitle}>Book</Text>
