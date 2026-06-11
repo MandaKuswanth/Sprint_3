@@ -10,6 +10,7 @@ const mongoose = require("mongoose");
 const employeeRoutes = require("./src/routes/employeeRoutes");
 const patientRoutes = require("./src/routes/patientRoute");
 const appointmentRoutes = require("./src/routes/appointmentRoutes");
+const patientAuthRoutes = require("./src/routes/patientAuthRoutes");
 
 const errorMiddleware = require("./src/middleware/errorMiddleware");
 
@@ -41,6 +42,7 @@ app.get("/", (req, res) => {
 app.use("/api/employees", employeeRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/appointments", appointmentRoutes);
+app.use("/api/patient-auth", patientAuthRoutes);
 
 // Global error middleware should always be last
 app.use(errorMiddleware);
