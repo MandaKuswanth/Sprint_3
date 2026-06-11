@@ -28,8 +28,7 @@ import AppCard
 import AppButton
     from "../../components/AppButton";
 
-import AppHeader
-    from "../../components/AppHeader";
+import ScreenHeader from "../../components/ScreenHeader";
 
 export default function EditAppointmentScreen({
 
@@ -100,10 +99,10 @@ export default function EditAppointmentScreen({
 
         <AppContainer>
 
-            <AppHeader
+            <ScreenHeader
                 title="Edit Appointment"
                 subtitle="Update your appointment date"
-                onBack={goBack}
+                goBack={goBack}
             />
 
             <AppCard>

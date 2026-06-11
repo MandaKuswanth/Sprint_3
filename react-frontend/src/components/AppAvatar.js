@@ -1,17 +1,19 @@
 import React from "react";
-
-import {
-    View,
-    Text,
-    StyleSheet
-} from "react-native";
-
+import { View, Text, StyleSheet } from "react-native";
 import COLORS from "../utils/colors";
 
 export default function AppAvatar({
-    name,
-    size = 60
+    name = "",
+    size = 50,
+    backgroundColor = COLORS.primary,
+    textColor = COLORS.white,
 }) {
+    const initials = name
+        ?.split(" ")
+        .map((w) => w[0])
+        .join("")
+        .toUpperCase()
+        .slice(0, 2);
 
     return (
         <View
@@ -20,34 +22,32 @@ export default function AppAvatar({
                 {
                     width: size,
                     height: size,
-                    borderRadius: size / 2
-                }
+                    borderRadius: size / 2,
+                    backgroundColor,
+                },
             ]}
         >
             <Text
                 style={[
                     styles.text,
                     {
-                        fontSize: size * 0.4
-                    }
+                        color: textColor,
+                        fontSize: size * 0.35,
+                    },
                 ]}
             >
-                {name?.charAt(0)?.toUpperCase()}
+                {initials || "?"}
             </Text>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-
     avatar: {
-        backgroundColor: COLORS.primary,
         justifyContent: "center",
-        alignItems: "center"
+        alignItems: "center",
     },
-
     text: {
-        color: COLORS.white,
-        fontWeight: "700"
-    }
+        fontWeight: "700",
+    },
 });
