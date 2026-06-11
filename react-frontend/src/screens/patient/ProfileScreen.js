@@ -69,13 +69,35 @@ export default function ProfileScreen({
 
                 {/* Address */}
                 <AppCard style={styles.card}>
-                    <Text style={styles.cardSectionTitle}>Address</Text>
-                    <InfoRow icon="📍" label="City" value={patient?.city} />
-                    <Divider />
-                    <InfoRow icon="🗺️" label="State" value={patient?.state} />
-                    <Divider />
-                    <InfoRow icon="📌" label="Pincode" value={patient?.pincode} />
-                </AppCard>
+    <Text style={styles.cardSectionTitle}>Address</Text>
+
+    <InfoRow
+        icon="🏠"
+        label="Street"
+        value={patient?.address?.street}
+    />
+    <Divider />
+
+    <InfoRow
+        icon="📍"
+        label="City"
+        value={patient?.address?.city}
+    />
+    <Divider />
+
+    <InfoRow
+        icon="🗺️"
+        label="State"
+        value={patient?.address?.state}
+    />
+    <Divider />
+
+    <InfoRow
+        icon="📌"
+        label="Pincode"
+        value={patient?.address?.pincode}
+    />
+</AppCard>
 
                 {/* Emergency Contact */}
                 {(patient?.emergencyContact?.name ||
