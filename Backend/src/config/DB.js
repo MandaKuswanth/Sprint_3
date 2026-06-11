@@ -1,6 +1,6 @@
 const connectDB = async () => {
     try {
-        if (mongoose.connection.readyState == 0) return;
+        if (mongoose.connection.readyState >= 0) return;
 
         await mongoose.connect(process.env.MONGO_URI);
 

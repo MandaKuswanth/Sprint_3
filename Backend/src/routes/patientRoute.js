@@ -49,16 +49,30 @@ router.put(
 router.delete(
     "/:uhid",
     authMiddleware,
-    allowRoles("ADMIN","RECEPTIONIST"),
+    allowRoles("ADMIN", "RECEPTIONIST"),
     deletePatient
 );
 
 
 router.patch(
-  "/:uhid/status",
-  authMiddleware,
-  allowRoles("ADMIN", "RECEPTIONIST"),
-  togglePatientStatus
+    "/:uhid/status",
+    authMiddleware,
+    allowRoles("ADMIN", "RECEPTIONIST"),
+    togglePatientStatus
+);
+
+
+
+//react-native
+router.put(
+    "/patient-profile/:uhid",
+    authMiddleware,
+    updatePatient
+);
+router.get(
+    "/patient-profile/:uhid",
+    authMiddleware,
+    getPatientById
 );
 
 
