@@ -25,6 +25,17 @@ router.get(
     appointmentController.getAppointments
 );
 
+router.put(
+    "/:appointmentId/approve",
+    adminReceptionistAccess,
+    appointmentController.approveAppointment
+);
+
+router.put(
+    "/:appointmentId/reject",
+    adminReceptionistAccess,
+    appointmentController.rejectAppointment
+);
 
 router.get(
     "/:appointmentId",

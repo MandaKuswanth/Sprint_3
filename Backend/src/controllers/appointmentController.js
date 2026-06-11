@@ -121,7 +121,7 @@ exports.createAppointment = async (req, res) => {
             doctorEmployeeId,
             date: appointmentDate,
             timeSlot,
-            status: { $in: ["BOOKED", "IN-PROCESS"] }
+            status: { $in: ["BOOKED", "IN-PROCESS", "PENDING"] }
         });
 
         if (existingAppointment) {
@@ -379,6 +379,142 @@ exports.deleteAppointment = async (req, res) => {
                 200,
                 null,
                 "Appointment deleted successfully"
+            )
+        );
+
+    } catch (err) {
+        return res.status(500).json(
+            new ApiError(500, err.message || "Internal Server Error")
+        );
+    }
+};
+exports.approveAppointment = async (req, res) => {
+    try {
+        const { appointmentId } = req.params;
+
+        const appointment = await Appointment.findOne({ appointmentId });
+
+        if (!appointment) {
+            return res.status(404).json(
+                new ApiError(404, "Appointment not found")
+            );
+        }
+
+        if (appointment.status !== "PENDING") {
+            return res.status(400).json(
+                new ApiError(400, "Only pending appointments can be approved")
+            );
+        }
+
+        const patient = await Patient.findOne({
+            UHID: appointment.patientId
+        });
+
+        const doctor = await Employee.findOne({
+            employeeCode: appointment.doctorEmployeeId
+        });
+
+        appointment.status = "BOOKED";
+        appointment.createdByEmployeeId = req.user.employeeId || req.user.id;
+
+        await appointment.save();
+
+        if (patient?.email) {
+            await sendEmail({
+                to: patient.email,
+                subject: "Appointment Approved - HMS",
+                html: `
+                    <h2>Appointment Approved</h2>
+
+                    <p>Hello ${patient.name},</p>
+
+                    <p>Your appointment request has been approved.</p>
+
+                    <p><strong>Appointment ID:</strong> ${appointment.appointmentId}</p>
+                    <p><strong>Doctor:</strong> Dr. ${doctor?.name || "N/A"}</p>
+                    <p><strong>Date:</strong> ${appointment.date?.toDateString()}</p>
+                    <p><strong>Time:</strong> ${appointment.timeSlot}</p>
+
+                    <p>Please arrive at least 10 minutes before your scheduled time.</p>
+
+                    <p>Thank you,<br/>HMS Team</p>
+                `
+            });
+        }
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                appointment,
+                "Appointment approved successfully"
+            )
+        );
+
+    } catch (err) {
+        return res.status(500).json(
+            new ApiError(500, err.message || "Internal Server Error")
+        );
+    }
+};
+exports.rejectAppointment = async (req, res) => {
+    try {
+        const { appointmentId } = req.params;
+
+        const appointment = await Appointment.findOne({ appointmentId });
+
+        if (!appointment) {
+            return res.status(404).json(
+                new ApiError(404, "Appointment not found")
+            );
+        }
+
+        if (appointment.status !== "PENDING") {
+            return res.status(400).json(
+                new ApiError(400, "Only pending appointments can be rejected")
+            );
+        }
+
+        const patient = await Patient.findOne({
+            UHID: appointment.patientId
+        });
+
+        const doctor = await Employee.findOne({
+            employeeCode: appointment.doctorEmployeeId
+        });
+
+        appointment.status = "CANCELLED";
+        appointment.cancellationReason = "Appointment request rejected by hospital staff";
+
+        await appointment.save();
+
+        if (patient?.email) {
+            await sendEmail({
+                to: patient.email,
+                subject: "Appointment Request Rejected - HMS",
+                html: `
+                    <h2>Appointment Request Rejected</h2>
+
+                    <p>Hello ${patient.name},</p>
+
+                    <p>Your appointment request has been rejected by hospital staff.</p>
+
+                    <p><strong>Appointment ID:</strong> ${appointment.appointmentId}</p>
+                    <p><strong>Doctor:</strong> Dr. ${doctor?.name || "N/A"}</p>
+                    <p><strong>Date:</strong> ${appointment.date?.toDateString()}</p>
+                    <p><strong>Time:</strong> ${appointment.timeSlot}</p>
+
+                    <p>Please contact hospital reception or book another available slot.</p>
+
+                    <p>Thank you,<br/>HMS Team</p>
+                `
+            });
+        }
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                appointment,
+                "Appointment rejected successfully"
             )
         );
 
