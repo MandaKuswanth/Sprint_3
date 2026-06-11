@@ -1,44 +1,70 @@
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
-import COLORS from "../utils/colors";
+import {
+    TouchableOpacity,
+    Text,
+    StyleSheet,
+    ActivityIndicator,
+} from "react-native";
 import PropTypes from "prop-types";
+
+import COLORS from "../utils/colors";
 
 export default function AppButton({
     title,
     onPress,
     color = COLORS.primary,
     textColor = "#FFFFFF",
-    variant = "solid", // "solid" | "outline"
+    variant = "solid",
     style,
+    disabled = false,
+    loading = false,
 }) {
     const isOutline = variant === "outline";
+
+    const backgroundColor = isOutline
+        ? "transparent"
+        : disabled
+            ? COLORS.subtitle
+            : color;
+
+    const finalTextColor = isOutline ? color : textColor;
 
     return (
         <TouchableOpacity
             style={[
                 styles.button,
                 {
-                    backgroundColor: isOutline
-                        ? "transparent"
-                        : color,
+                    backgroundColor,
                     borderWidth: isOutline ? 1.5 : 0,
-                    borderColor: isOutline ? color : "transparent",
+                    borderColor: isOutline
+                        ? disabled
+                            ? COLORS.subtitle
+                            : color
+                        : "transparent",
+                    opacity: disabled ? 0.7 : 1,
                 },
                 style,
             ]}
             onPress={onPress}
             activeOpacity={0.8}
+            disabled={disabled || loading}
         >
-            <Text
-                style={[
-                    styles.text,
-                    {
-                        color: isOutline ? color : textColor,
-                    },
-                ]}
-            >
-                {title}
-            </Text>
+            {loading ? (
+                <ActivityIndicator color={finalTextColor} />
+            ) : (
+                <Text
+                    style={[
+                        styles.text,
+                        {
+                            color: disabled && isOutline
+                                ? COLORS.subtitle
+                                : finalTextColor,
+                        },
+                    ]}
+                >
+                    {title}
+                </Text>
+            )}
         </TouchableOpacity>
     );
 }
@@ -46,10 +72,12 @@ export default function AppButton({
 const styles = StyleSheet.create({
     button: {
         paddingVertical: 16,
-        borderRadius: 50,        // fully pill-shaped like screenshots
+        borderRadius: 50,
         alignItems: "center",
         justifyContent: "center",
+        marginBottom: 12,
     },
+
     text: {
         fontWeight: "700",
         fontSize: 16,
@@ -63,5 +91,10 @@ AppButton.propTypes = {
     color: PropTypes.string,
     textColor: PropTypes.string,
     variant: PropTypes.oneOf(["solid", "outline"]),
-    style: PropTypes.object,
+    style: PropTypes.oneOfType([
+        PropTypes.object,
+        PropTypes.array,
+    ]),
+    disabled: PropTypes.bool,
+    loading: PropTypes.bool,
 };

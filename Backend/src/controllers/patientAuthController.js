@@ -13,6 +13,7 @@ exports.registerPatient = async (req, res) => {
             phone,
             email,
             password,
+            bloodGroup,
             gender,
             dob,
             address,
@@ -24,6 +25,7 @@ exports.registerPatient = async (req, res) => {
             !phone ||
             !email ||
             !password ||
+            !bloodGroup ||
             !dob
         ) {
             return res.status(400).json(
@@ -64,6 +66,7 @@ exports.registerPatient = async (req, res) => {
             name,
             phone,
             email,
+            bloodGroup,
             gender,
             dob,
             address,

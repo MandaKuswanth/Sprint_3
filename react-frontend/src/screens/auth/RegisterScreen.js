@@ -38,7 +38,7 @@ export default function RegisterScreen({ goToLogin }) {
     const [showDobPicker, setShowDobPicker] = useState(false);
 
     // Address
-    const [address, setAddress] = useState("");
+    const [street, setStreet] = useState("");
     const [city, setCity] = useState("");
     const [state, setState] = useState("");
     const [pincode, setPincode] = useState("");
@@ -75,10 +75,12 @@ export default function RegisterScreen({ goToLogin }) {
                 gender,
                 dob: formatDob(dob),
                 bloodGroup,
-                address,
-                city,
-                state,
-                pincode,
+                address: {
+                    street,
+                    city,
+                    state,
+                    pincode
+                },
                 emergencyContact: {
                     name: ecName,
                     relation: ecRelation,
@@ -227,8 +229,8 @@ export default function RegisterScreen({ goToLogin }) {
 
                         <AppInput
                             placeholder="Street Address"
-                            value={address}
-                            onChangeText={setAddress}
+                            value={street}
+                            onChangeText={setStreet}
                         />
                         <AppInput
                             placeholder="City"
