@@ -143,6 +143,10 @@ export default function App() {
           <BookAppointmentScreen
             token={token}
             selectedDoctor={selectedDoctor}
+            goBack={() => {
+              setSelectedDoctor(null);
+              setScreen("myAppointments");
+            }}
             goToMyAppointments={() => {
               setSelectedDoctor(null);
               setScreen("myAppointments");
