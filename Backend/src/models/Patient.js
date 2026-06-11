@@ -10,7 +10,12 @@ const patientSchema = new mongoose.Schema({
     bloodGroup: { type: String, enum: ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"] },
     gender: { type: String, trim: true, enum: ["male", "female", "others"] },
     dob: { type: Date, required: true },
-    address: { type: String },
+    address: {
+        street: { type: String },
+        city: { type: String },
+        state: { type: String },
+        pincode: { type: String }
+    },
     emergencyContact: {
         name: { type: String },
         relation: { type: String },
