@@ -1,4 +1,3 @@
-// src/screens/patient/DashboardScreen.js
 
 import React, { useEffect, useState } from "react";
 import {
@@ -28,8 +27,7 @@ export default function DashboardScreen({
 }) {
     const [search, setSearch] = useState("");
     const [activeFilter, setActiveFilter] = useState("All");
-    console.log("Doctors received:", doctors);
-console.log("Doctors length:", doctors.length);
+
 
     const specializations = [
         "All",
@@ -126,10 +124,13 @@ console.log("Doctors length:", doctors.length);
                 {/* ── Quick action cards ── */}
                 <View style={styles.quickRow}>
                     <TouchableOpacity
-                        style={styles.quickCard}
-                        onPress={goToBookAppointment}
-                        activeOpacity={0.8}
-                    >
+    style={styles.quickCard}
+    onPress={() => {
+        console.log("Book button clicked");
+        goToBookAppointment();
+    }}
+    activeOpacity={0.8}
+>
                         <AppCard style={styles.quickCardInner}>
                             <Text style={styles.quickIcon}>＋</Text>
                             <Text style={styles.quickTitle}>Book</Text>
