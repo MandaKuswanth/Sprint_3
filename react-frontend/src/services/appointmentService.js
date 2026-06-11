@@ -20,7 +20,7 @@ export const bookAppointment = async (
 ) => {
 
     const response = await api.post(
-        "patientAppointment-auth/patient-appointments",
+        "/patientAppointment-auth/patient-appointments",
         appointmentData,
         {
             headers: {
@@ -44,7 +44,7 @@ export const getMyAppointments = async (
             }
         }
     );
-
+  
     return response.data;
 };
 
@@ -55,7 +55,7 @@ export const updateAppointment = async (
 ) => {
 
     const response = await api.put(
-        `patientAppointment-auth/patient-appointments/${appointmentId}`,
+        `/patientAppointment-auth/patient-appointments/${appointmentId}`,
         appointmentData,
         {
             headers: {
@@ -74,7 +74,7 @@ export const cancelAppointment = async (
 ) => {
 
     const response = await api.put(
-        `patientAppointment-auth/patient-appointments/${appointmentId}/cancel`,
+        `/patientAppointment-auth/patient-appointments/${appointmentId}/cancel`,
         {},
         {
             headers: {
