@@ -20,6 +20,8 @@ import COLORS from "../../utils/colors";
 import AppCard from "../../components/AppCard";
 import AppButton from "../../components/AppButton";
 import AppContainer from "../../components/AppContainer";
+import ScreenHeader from "../../components/ScreenHeader";
+import AppInput from "../../components/AppInput";
 
 export default function MyAppointmentsScreen({
     token,
@@ -93,12 +95,10 @@ export default function MyAppointmentsScreen({
     return (
         <AppContainer>
             {/* Page title */}
-            <View style={styles.pageHeader}>
-                <Text style={styles.pageTitle}>Appointments</Text>
-                <Text style={styles.pageSub}>
-                    Book and view your hospital appointments
-                </Text>
-            </View>
+            <ScreenHeader
+                title="Appointments"
+                subtitle="Book and view your hospital appointments"
+            />
 
             {/* Tab switcher */}
             <View style={styles.tabContainer}>
@@ -250,22 +250,6 @@ export default function MyAppointmentsScreen({
 }
 
 const styles = StyleSheet.create({
-    pageHeader: {
-        paddingHorizontal: 20,
-        paddingTop: 10,
-        paddingBottom: 12,
-    },
-    pageTitle: {
-        fontSize: 30,
-        fontWeight: "800",
-        color: COLORS.text,
-        letterSpacing: -0.5,
-    },
-    pageSub: {
-        fontSize: 14,
-        color: COLORS.subtitle,
-        marginTop: 2,
-    },
 
     /* tab switcher */
     tabContainer: {

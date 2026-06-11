@@ -229,7 +229,7 @@ export class AppointmentList implements OnInit {
       : `Dr. ${appointment.doctorName}`;
   }
   get statuses(): string[] {
-  return ['ALL STATUS', 'BOOKED', 'IN-PROCESS', 'COMPLETED', 'CANCELLED'];
+  return ['ALL STATUS', 'PENDING', 'BOOKED', 'IN-PROCESS', 'COMPLETED', 'CANCELLED'];
 }
 
 get doctors(): any[] {
@@ -283,5 +283,64 @@ clearFilters(): void {
   this.filteredAppointments = [...this.appointments];
   this.expandedAppointment = null;
   this.cdr.markForCheck();
+}
+approveAppointment(appointment: any): void {
+  if (!appointment?.appointmentId) {
+    this.toastr.error('Appointment ID missing');
+    return;
+  }
+
+  const confirmed = confirm(
+    `Approve appointment ${appointment.appointmentId}?`
+  );
+
+  if (!confirmed) return;
+
+  this.appointmentService
+    .approveAppointment(appointment.appointmentId)
+    .subscribe({
+      next: (response: any) => {
+        this.toastr.success(
+          response?.message || 'Appointment approved successfully'
+        );
+        this.expandedAppointment = null;
+        this.loadAppointments();
+      },
+      error: (err: any) => {
+        this.toastr.error(
+          err?.error?.message || 'Failed to approve appointment'
+        );
+      }
+    });
+}
+
+rejectAppointment(appointment: any): void {
+  if (!appointment?.appointmentId) {
+    this.toastr.error('Appointment ID missing');
+    return;
+  }
+
+  const confirmed = confirm(
+    `Reject appointment ${appointment.appointmentId}?`
+  );
+
+  if (!confirmed) return;
+
+  this.appointmentService
+    .rejectAppointment(appointment.appointmentId)
+    .subscribe({
+      next: (response: any) => {
+        this.toastr.success(
+          response?.message || 'Appointment rejected successfully'
+        );
+        this.expandedAppointment = null;
+        this.loadAppointments();
+      },
+      error: (err: any) => {
+        this.toastr.error(
+          err?.error?.message || 'Failed to reject appointment'
+        );
+      }
+    });
 }
 }

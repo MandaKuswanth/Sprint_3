@@ -105,7 +105,7 @@ exports.bookAppointment = async (req, res) => {
                 timeSlot,
 
                 status: {
-                    $ne: "CANCELLED"
+                    $in: ["PENDING", "BOOKED", "IN-PROCESS"]
                 }
             });
 
@@ -259,7 +259,7 @@ exports.updateMyAppointment = async (req, res) => {
                 timeSlot,
 
                 status: {
-                    $ne: "CANCELLED"
+                    $in: ["PENDING", "BOOKED", "IN-PROCESS"]
                 }
             });
 

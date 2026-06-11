@@ -72,6 +72,11 @@
       </div>
 
       <!-- SUMMARY CARDS -->
+      <div class="summary-card pending">
+        <span>Pending</span>
+        <strong>{{ getStatusCount('PENDING') }}</strong>
+      </div>
+
       <div class="summary-cards">
         <div class="summary-card booked">
           <span>Booked</span>
@@ -197,6 +202,19 @@
 
                 @if (role !== 'DOCTOR') {
                 <div class="appointment-action-buttons">
+                  @if (a.status === 'PENDING') {
+                  <button mat-stroked-button class="approve-action" matTooltip="Approve Appointment"
+                    (click)="approveAppointment(a); $event.stopPropagation()">
+                    <mat-icon>check_circle</mat-icon>
+                    Approve
+                  </button>
+
+                  <button mat-stroked-button class="reject-action" matTooltip="Reject Appointment"
+                    (click)="rejectAppointment(a); $event.stopPropagation()">
+                    <mat-icon>cancel</mat-icon>
+                    Reject
+                  </button>
+                  }
                   <button mat-stroked-button class="delete-action" matTooltip="Delete Appointment"
                     (click)="deleteAppointment(a); $event.stopPropagation()">
                     <mat-icon>delete</mat-icon>

@@ -1,40 +1,53 @@
-// src/components/AppButton.js
-
 import React from "react";
-import { TouchableOpacity, Text, StyleSheet } from "react-native";
+import {
+    TouchableOpacity,
+    Text,
+    StyleSheet,
+} from "react-native";
+
 import COLORS from "../utils/colors";
 
 export default function AppButton({
     title,
     onPress,
     color = COLORS.primary,
-    textColor = "#FFFFFF",
-    variant = "solid", // "solid" | "outline"
+    textColor = COLORS.white,
+    variant = "solid",
+    disabled = false,
     style,
 }) {
     const isOutline = variant === "outline";
 
     return (
         <TouchableOpacity
+            activeOpacity={0.8}
+            disabled={disabled}
+            onPress={onPress}
             style={[
                 styles.button,
                 {
                     backgroundColor: isOutline
                         ? "transparent"
-                        : color,
+                        : disabled
+                            ? "#CBD5E1"
+                            : color,
+
                     borderWidth: isOutline ? 1.5 : 0,
-                    borderColor: isOutline ? color : "transparent",
+
+                    borderColor: isOutline
+                        ? color
+                        : "transparent",
                 },
                 style,
             ]}
-            onPress={onPress}
-            activeOpacity={0.8}
         >
             <Text
                 style={[
                     styles.text,
                     {
-                        color: isOutline ? color : textColor,
+                        color: isOutline
+                            ? color
+                            : textColor,
                     },
                 ]}
             >
@@ -46,14 +59,15 @@ export default function AppButton({
 
 const styles = StyleSheet.create({
     button: {
-        paddingVertical: 16,
-        borderRadius: 50,        // fully pill-shaped like screenshots
-        alignItems: "center",
+        minHeight: 52,
+        borderRadius: 50,
         justifyContent: "center",
+        alignItems: "center",
+        paddingHorizontal: 20,
     },
+
     text: {
-        fontWeight: "700",
         fontSize: 16,
-        letterSpacing: 0.2,
+        fontWeight: "700",
     },
 });
