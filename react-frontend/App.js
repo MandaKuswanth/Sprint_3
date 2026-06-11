@@ -65,18 +65,19 @@ export default function App() {
     const fetchDoctors = async () => {
       if (!token) return;
 
-      try {
-        const data = await getDoctors(token);
+    try {
+  const response = await getDoctors(token);
 
-        console.log("API doctors response:", data);
+  console.log("API doctors response:", response);
 
-        setDoctors(data.data);
-      } catch (err) {
-        console.log(
-          "Doctor fetch error:",
-          err.response?.data || err.message
-        );
-      }
+  setDoctors(response.data);
+  console.log("Doctors stored:", response.data);
+} catch (err) {
+  console.log(
+    "Doctor fetch error:",
+    err.response?.data || err.message
+  );
+}
     };
 
     fetchDoctors();

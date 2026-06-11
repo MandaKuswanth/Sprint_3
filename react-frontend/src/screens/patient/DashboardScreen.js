@@ -28,6 +28,8 @@ export default function DashboardScreen({
 }) {
     const [search, setSearch] = useState("");
     const [activeFilter, setActiveFilter] = useState("All");
+    console.log("Doctors received:", doctors);
+console.log("Doctors length:", doctors.length);
 
     const specializations = [
         "All",

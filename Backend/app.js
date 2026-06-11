@@ -11,6 +11,7 @@ const employeeRoutes = require("./src/routes/employeeRoutes");
 const patientRoutes = require("./src/routes/patientRoute");
 const appointmentRoutes = require("./src/routes/appointmentRoutes");
 const patientAuthRoutes = require("./src/routes/patientAuthRoutes");
+const patientAppointmentRoutes=require("./src/routes/patientAppointmentRoutes");
 
 const errorMiddleware = require("./src/middleware/errorMiddleware");
 
@@ -43,7 +44,7 @@ app.use("/api/employees", employeeRoutes);
 app.use("/api/patients", patientRoutes);
 app.use("/api/appointments", appointmentRoutes);
 app.use("/api/patient-auth", patientAuthRoutes);
-
+app.use("/api/patientAppointment-auth",patientAppointmentRoutes);
 // Global error middleware should always be last
 app.use(errorMiddleware);
 
