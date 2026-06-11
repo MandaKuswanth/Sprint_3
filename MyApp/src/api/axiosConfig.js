@@ -2,7 +2,8 @@ import axios from "axios";
 import { Alert, Platform } from "react-native";
 
 import { getItem, removeItem, setItem } from "../utils/storage"
-import { resetToLogin } from "../navigation/navigationRef";
+
+
 
 const baseURL =
     Platform.OS === "android"
