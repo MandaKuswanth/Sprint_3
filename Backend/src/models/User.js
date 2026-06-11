@@ -18,6 +18,11 @@ const userSchema = new Schema(
             required: true
         },
 
+        isEmployee: {
+            type: Boolean,
+            default: true
+        },
+
         status: {
             type: Boolean,
             default: true
@@ -36,12 +41,21 @@ const userSchema = new Schema(
                 "PHARMACIST",
                 "TECHNICIAN"
             ],
-            required: true
+            required: function () {
+                return this.isEmployee;
+            }
+        },
+
+        UHID: {
+            type: String,
+            default: null
         },
 
         employeeId: {
             type: String,
-            required: true
+            required: function () {
+                return this.isEmployee;
+            }
         },
 
         lastLogin: {
@@ -51,7 +65,9 @@ const userSchema = new Schema(
 
         mustResetPassword: {
             type: Boolean,
-            default: true
+            default: function () {
+                return this.isEmployee;
+            }
         }
     },
     {
