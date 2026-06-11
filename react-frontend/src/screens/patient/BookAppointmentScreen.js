@@ -25,6 +25,7 @@ import AppCard from "../../components/AppCard";
 import AppButton from "../../components/AppButton";
 import AppAvatar from "../../components/AppAvatar";
 import ScreenHeader from "../../components/ScreenHeader";
+import AppInput from "../../components/AppInput";
 
 const TIME_SLOTS = [
     "09:00 AM",
