@@ -57,6 +57,7 @@ export default function BookAppointmentScreen({
     token,
     goBack,
     selectedDoctor: preselectedDoctor,
+    goToMyAppointments,
 }) {
     const [doctors, setDoctors] = useState([]);
     const [selectedDoctor, setSelectedDoctor] = useState(
@@ -211,7 +212,7 @@ export default function BookAppointmentScreen({
 
                     <TouchableOpacity
                         style={styles.tab}
-                        onPress={goBack}
+                        onPress={goToMyAppointments}
                     >
                         <Text style={styles.tabText}>My Appointments</Text>
                     </TouchableOpacity>
