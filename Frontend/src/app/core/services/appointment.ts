@@ -52,4 +52,18 @@ export class AppointmentService {
         );
     }
 
+    approveAppointment(appointmentId: string): Observable<any> {
+    return this.http.put(
+      `${this.baseUrl}/appointments/${appointmentId}/approve`,
+      {}
+    );
+  }
+
+  rejectAppointment(appointmentId: string): Observable<any> {
+    return this.http.put(
+      `${this.baseUrl}/appointments/${appointmentId}/reject`,
+      {}
+    );
+  }
+
 }

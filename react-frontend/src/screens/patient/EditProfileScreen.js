@@ -17,6 +17,7 @@ import AppContainer from "../../components/AppContainer";
 import AppCard from "../../components/AppCard";
 import AppInput from "../../components/AppInput";
 import AppButton from "../../components/AppButton";
+import ScreenHeader from "../../components/ScreenHeader";
 import COLORS from "../../utils/colors";
 import { updatePatient } from "../../services/patientService";
 
@@ -115,16 +116,11 @@ export default function EditProfileScreen({
                 contentContainerStyle={styles.scroll}
             >
                 {/* Header */}
-                <TouchableOpacity onPress={goBack}>
-                    <Text style={styles.back}>← Back</Text>
-                </TouchableOpacity>
-
-                <View style={styles.header}>
-                    <Text style={styles.title}>Edit Profile</Text>
-                    <Text style={styles.subtitle}>
-                        Update your personal information
-                    </Text>
-                </View>
+                <ScreenHeader
+                    title="Edit Profile"
+                    subtitle="Update your personal information"
+                    goBack={goBack}
+                />
 
                 {/* ── Basic Info ── */}
                 <AppCard style={styles.card}>
@@ -182,7 +178,7 @@ export default function EditProfileScreen({
                                     style={[
                                         styles.chipText,
                                         bloodGroup === bg &&
-                                            styles.chipTextActive,
+                                        styles.chipTextActive,
                                     ]}
                                 >
                                     {bg}
@@ -296,30 +292,6 @@ const styles = StyleSheet.create({
     scroll: {
         paddingBottom: 40,
     },
-    back: {
-        marginHorizontal: 20,
-        marginTop: 10,
-        marginBottom: 6,
-        color: COLORS.primary,
-        fontSize: 16,
-        fontWeight: "600",
-    },
-    header: {
-        paddingHorizontal: 20,
-        marginBottom: 16,
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: "800",
-        color: COLORS.text,
-        letterSpacing: -0.5,
-    },
-    subtitle: {
-        color: COLORS.subtitle,
-        marginTop: 4,
-        fontSize: 14,
-    },
-
     card: {
         marginHorizontal: 20,
         marginBottom: 14,

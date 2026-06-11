@@ -174,7 +174,7 @@
 
 .summary-cards {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(5, 1fr);
     gap: 12px;
     margin-bottom: 14px;
     flex-shrink: 0;
@@ -495,4 +495,37 @@ button[mat-icon-button] mat-icon {
     .summary-cards {
         grid-template-columns: 1fr;
     }
+}
+.badge.pending {
+    background: #ede7f6;
+    color: #4527a0;
+}
+
+.summary-card.pending strong {
+    color: #4527a0;
+}
+
+.approve-action {
+    height: 42px;
+    border-radius: 10px !important;
+    color: #1b5e20 !important;
+    border-color: #a5d6a7 !important;
+    background: #e8f5e9 !important;
+    font-weight: 700;
+    padding: 0 18px !important;
+}
+
+.reject-action {
+    height: 42px;
+    border-radius: 10px !important;
+    color: #8b0000 !important;
+    border-color: #ef9a9a !important;
+    background: #ffebee !important;
+    font-weight: 700;
+    padding: 0 18px !important;
+}
+
+.approve-action mat-icon,
+.reject-action mat-icon {
+    margin-right: 8px;
 }

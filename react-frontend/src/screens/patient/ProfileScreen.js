@@ -12,6 +12,8 @@ import {
 import AppContainer from "../../components/AppContainer";
 import AppCard from "../../components/AppCard";
 import AppButton from "../../components/AppButton";
+import AppAvatar from "../../components/AppAvatar";
+import ScreenHeader from "../../components/ScreenHeader";
 import COLORS from "../../utils/colors";
 
 export default function ProfileScreen({
@@ -39,14 +41,15 @@ export default function ProfileScreen({
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scroll}
             >
-                <View style={styles.pageHeader}>
-                    <Text style={styles.pageTitle}>Profile</Text>
-                </View>
+                <ScreenHeader
+                    title="Profile"
+                />
 
                 <View style={styles.avatarSection}>
-                    <View style={styles.avatarCircle}>
-                        <Text style={styles.avatarText}>{initials || "P"}</Text>
-                    </View>
+                    <AppAvatar
+                        name={patient?.name}
+                        size={80}
+                    />
                     <Text style={styles.patientName}>{patient?.name}</Text>
                     <Text style={styles.uhidText}>{patient?.UHID}</Text>
                 </View>
@@ -148,15 +151,7 @@ function Divider() {
 
 const styles = StyleSheet.create({
     scroll: { paddingBottom: 40 },
-    pageHeader: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 6 },
-    pageTitle: { fontSize: 30, fontWeight: "800", color: COLORS.text, letterSpacing: -0.5 },
     avatarSection: { alignItems: "center", paddingVertical: 24 },
-    avatarCircle: {
-        width: 80, height: 80, borderRadius: 40,
-        backgroundColor: COLORS.primary,
-        justifyContent: "center", alignItems: "center", marginBottom: 12,
-    },
-    avatarText: { color: "#fff", fontSize: 30, fontWeight: "700" },
     patientName: { fontSize: 22, fontWeight: "700", color: COLORS.text },
     uhidText: { fontSize: 14, color: COLORS.subtitle, marginTop: 4 },
     card: { marginHorizontal: 20, marginBottom: 14, paddingVertical: 4 },
