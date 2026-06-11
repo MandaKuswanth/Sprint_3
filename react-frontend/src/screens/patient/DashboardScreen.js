@@ -11,8 +11,11 @@ import {
     FlatList,
 } from "react-native";
 
+import AppAvatar from "../../components/AppAvatar";
 import AppContainer from "../../components/AppContainer";
 import AppCard from "../../components/AppCard";
+import AppInput from "../../components/AppInput";
+
 import COLORS from "../../utils/colors";
 
 export default function DashboardScreen({
@@ -99,11 +102,11 @@ console.log("Doctors length:", doctors.length);
                         <Text style={styles.greeting}>Good day,</Text>
                         <Text style={styles.screenTitle}>Patient Record</Text>
                     </View>
-                    <TouchableOpacity
-                        style={styles.avatarCircle}
-                        onPress={goToProfile}
-                    >
-                        <Text style={styles.avatarText}>{initials || "P"}</Text>
+                    <TouchableOpacity onPress={goToProfile}>
+                        <AppAvatar
+                            name={patient?.name}
+                            size={46}
+                        />
                     </TouchableOpacity>
                 </View>
 
@@ -154,16 +157,11 @@ console.log("Doctors length:", doctors.length);
                         Search by doctor name or specialization
                     </Text>
 
-                    <View style={styles.searchBox}>
-                        <Text style={styles.searchIcon}>🔍</Text>
-                        <TextInput
-                            value={search}
-                            onChangeText={setSearch}
-                            placeholder="Search doctors, e.g. Cardiology"
-                            placeholderTextColor={COLORS.subtitle}
-                            style={styles.searchInput}
-                        />
-                    </View>
+                    <AppInput
+                        value={search}
+                        onChangeText={setSearch}
+                        placeholder="Search doctors, e.g. Cardiology"
+                    />
                 </AppCard>
 
                 {/* ── Specialization filters ── */}
@@ -231,9 +229,12 @@ function DoctorCard({ doctor, onBook }) {
         <AppCard style={styles.doctorCard}>
             {/* Header row */}
             <View style={styles.doctorTop}>
-                <View style={styles.doctorAvatar}>
-                    <Text style={styles.doctorAvatarText}>{initials}</Text>
-                </View>
+                <AppAvatar
+                    name={doctor.name}
+                    size={52}
+                    backgroundColor={COLORS.primaryLight}
+                    textColor={COLORS.primary}
+                />
                 <View style={{ flex: 1 }}>
                     <Text style={styles.doctorName}>{doctor.name}</Text>
                     <Text style={styles.doctorSpec}>{doctor.specialization}</Text>
@@ -297,19 +298,6 @@ const styles = StyleSheet.create({
         fontWeight: "800",
         color: COLORS.text,
         letterSpacing: -0.5,
-    },
-    avatarCircle: {
-        width: 46,
-        height: 46,
-        borderRadius: 23,
-        backgroundColor: COLORS.primary,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    avatarText: {
-        color: "#fff",
-        fontWeight: "700",
-        fontSize: 16,
     },
 
     /* UHID card */
@@ -392,25 +380,6 @@ const styles = StyleSheet.create({
         color: COLORS.subtitle,
         marginBottom: 12,
     },
-    searchBox: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: COLORS.surface,
-        borderRadius: 12,
-        paddingHorizontal: 12,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-    },
-    searchIcon: {
-        fontSize: 16,
-        marginRight: 8,
-    },
-    searchInput: {
-        flex: 1,
-        paddingVertical: 13,
-        fontSize: 15,
-        color: COLORS.text,
-    },
 
     /* filters */
     filterRow: {
@@ -467,20 +436,6 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         marginBottom: 14,
-    },
-    doctorAvatar: {
-        width: 52,
-        height: 52,
-        borderRadius: 26,
-        backgroundColor: COLORS.primaryLight,
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 14,
-    },
-    doctorAvatarText: {
-        color: COLORS.primary,
-        fontWeight: "700",
-        fontSize: 18,
     },
     doctorName: {
         fontSize: 17,

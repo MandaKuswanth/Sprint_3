@@ -23,6 +23,9 @@ import COLORS from "../../utils/colors";
 import AppContainer from "../../components/AppContainer";
 import AppCard from "../../components/AppCard";
 import AppButton from "../../components/AppButton";
+import AppAvatar from "../../components/AppAvatar";
+import ScreenHeader from "../../components/ScreenHeader";
+import AppInput from "../../components/AppInput";
 
 const TIME_SLOTS = [
     "09:00 AM",
@@ -133,12 +136,10 @@ export default function BookAppointmentScreen({
                 keyboardShouldPersistTaps="handled"
             >
                 {/* Page header */}
-                <View style={styles.pageHeader}>
-                    <Text style={styles.pageTitle}>Appointments</Text>
-                    <Text style={styles.pageSub}>
-                        Book and view your hospital appointments
-                    </Text>
-                </View>
+                <ScreenHeader
+                    title="Appointments"
+                    subtitle="Book and view your hospital appointments"
+                />
 
                 {/* Tab row (visual only — Book is active) */}
                 <View style={styles.tabContainer}>
@@ -166,11 +167,10 @@ export default function BookAppointmentScreen({
                                 Selected Doctor
                             </Text>
                             <View style={styles.selectedDoctorBox}>
-                                <View style={styles.sdAvatar}>
-                                    <Text style={styles.sdAvatarText}>
-                                        {doctorInitials}
-                                    </Text>
-                                </View>
+                                <AppAvatar
+                                    name={selectedDoctor.name}
+                                    size={42}
+                                />
                                 <Text style={styles.sdName}>
                                     {selectedDoctor.name}
                                 </Text>
@@ -205,15 +205,11 @@ export default function BookAppointmentScreen({
                         <>
                             <Text style={styles.fieldLabel}>Choose Doctor</Text>
 
-                            <View style={styles.searchBox}>
-                                <TextInput
-                                    value={search}
-                                    onChangeText={setSearch}
-                                    placeholder="Search by name or specialization"
-                                    placeholderTextColor={COLORS.subtitle}
-                                    style={styles.searchInput}
-                                />
-                            </View>
+                            <AppInput
+                                value={search}
+                                onChangeText={setSearch}
+                                placeholder="Search by name or specialization"
+                            />
                         </>
                     )}
 
@@ -309,15 +305,16 @@ export default function BookAppointmentScreen({
 
                     {/* Reason */}
                     <Text style={styles.fieldLabel}>Reason</Text>
-                    <TextInput
+                    <AppInput
                         value={reason}
                         onChangeText={setReason}
                         placeholder="Enter reason for visit"
-                        placeholderTextColor={COLORS.subtitle}
                         multiline
                         numberOfLines={4}
-                        style={styles.reasonInput}
-                        textAlignVertical="top"
+                        style={{
+                            minHeight: 100,
+                            textAlignVertical: "top",
+                        }}
                     />
 
                     {/* Book button */}
@@ -335,23 +332,6 @@ export default function BookAppointmentScreen({
 const styles = StyleSheet.create({
     scroll: {
         paddingBottom: 40,
-    },
-
-    pageHeader: {
-        paddingHorizontal: 20,
-        paddingTop: 10,
-        paddingBottom: 12,
-    },
-    pageTitle: {
-        fontSize: 30,
-        fontWeight: "800",
-        color: COLORS.text,
-        letterSpacing: -0.5,
-    },
-    pageSub: {
-        fontSize: 14,
-        color: COLORS.subtitle,
-        marginTop: 2,
     },
 
     /* tabs */
@@ -414,19 +394,6 @@ const styles = StyleSheet.create({
         backgroundColor: "#EEF4FF",
         gap: 12,
     },
-    sdAvatar: {
-        width: 42,
-        height: 42,
-        borderRadius: 21,
-        backgroundColor: COLORS.primary,
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    sdAvatarText: {
-        color: "#fff",
-        fontWeight: "700",
-        fontSize: 15,
-    },
     sdName: {
         flex: 1,
         fontSize: 16,
@@ -443,20 +410,6 @@ const styles = StyleSheet.create({
         color: "#fff",
         fontSize: 12,
         fontWeight: "700",
-    },
-
-    /* search */
-    searchBox: {
-        backgroundColor: COLORS.surface,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        paddingHorizontal: 14,
-    },
-    searchInput: {
-        paddingVertical: 13,
-        fontSize: 15,
-        color: COLORS.text,
     },
     suggestBox: {
         backgroundColor: COLORS.white,
@@ -545,20 +498,6 @@ const styles = StyleSheet.create({
         color: COLORS.subtitle,
         fontSize: 14,
     },
-
-    /* reason */
-    reasonInput: {
-        backgroundColor: COLORS.surface,
-        borderRadius: 12,
-        borderWidth: 1,
-        borderColor: COLORS.border,
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        fontSize: 15,
-        color: COLORS.text,
-        minHeight: 100,
-    },
-
     bookBtn: {
         marginTop: 24,
     },

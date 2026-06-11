@@ -1,17 +1,15 @@
-// src/components/AppContainer.js
-
 import React from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
 import COLORS from "../utils/colors";
 
-export default function AppContainer({ children, style }) {
+export default function AppContainer({
+    children,
+    style,
+}) {
     return (
         <SafeAreaView
             style={[
-                {
-                    flex: 1,
-                    backgroundColor: COLORS.background,
-                },
+                styles.container,
                 style,
             ]}
         >
@@ -19,3 +17,10 @@ export default function AppContainer({ children, style }) {
         </SafeAreaView>
     );
 }
+
+const styles = {
+    container: {
+        flex: 1,
+        backgroundColor: COLORS.background,
+    },
+};
