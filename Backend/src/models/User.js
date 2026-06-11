@@ -90,7 +90,10 @@ userSchema.methods.generateAccessToken = function () {
         {
             id: this._id,
             email: this.email,
-            role: this.roles
+            role: this.roles,
+            isEmployee: this.isEmployee,
+            employeeId: this.employeeId,
+            UHID: this.UHID
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
