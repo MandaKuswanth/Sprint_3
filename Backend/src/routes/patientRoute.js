@@ -63,17 +63,7 @@ router.patch(
 
 
 
-//react-native
-router.put(
-    "/patient-profile/:uhid",
-    authMiddleware,
-    updatePatient
-);
-router.get(
-    "/patient-profile/:uhid",
-    authMiddleware,
-    getPatientById
-);
+
 
 
 module.exports = router;

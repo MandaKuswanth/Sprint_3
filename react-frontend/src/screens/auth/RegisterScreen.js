@@ -49,6 +49,7 @@ export default function RegisterScreen({ goToLogin }) {
     const [ecPhone, setEcPhone] = useState("");
 
     const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState({});
 
     const formatDob = (date) => {
         if (!date) return "";
@@ -58,13 +59,71 @@ export default function RegisterScreen({ goToLogin }) {
         return `${y}-${m}-${d}`;
     };
 
+    const validateForm = () => {
+
+        const newErrors = {};
+
+        if (!name.trim()) {
+            newErrors.name = "Name is required";
+        } else if (!/^[A-Za-z ]+$/.test(name.trim())) {
+            newErrors.name = "Only alphabets are allowed";
+        }
+
+        if (!phone.trim()) {
+            newErrors.phone = "Phone number is required";
+        } else if (!/^[6-9]\d{9}$/.test(phone)) {
+            newErrors.phone = "Enter a valid 10 digit mobile number";
+        }
+
+        if (!email.trim()) {
+            newErrors.email = "Email is required";
+        } else if (
+            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+        ) {
+            newErrors.email = "Enter a valid email address";
+        }
+
+        if (!password) {
+            newErrors.password = "Password is required";
+        } else if (password.length < 8) {
+            newErrors.password =
+                "Password must be at least 8 characters";
+        }
+
+        if (!gender) {
+            newErrors.gender = "Please select gender";
+        }
+
+        if (!dob) {
+            newErrors.dob = "Date of birth is required";
+        }
+
+        if (pincode && !/^\d{6}$/.test(pincode)) {
+            newErrors.pincode =
+                "Pincode must contain 6 digits";
+        }
+
+        if (
+            ecPhone &&
+            !/^[6-9]\d{9}$/.test(ecPhone)
+        ) {
+            newErrors.ecPhone =
+                "Enter a valid emergency contact number";
+        }
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleRegister = async () => {
-        if (!name || !phone || !email || !password || !gender || !dob) {
-            Alert.alert("Error", "Please fill all required fields");
+
+        if (!validateForm()) {
             return;
         }
 
         try {
+
             setLoading(true);
 
             await registerPatient({
@@ -84,19 +143,27 @@ export default function RegisterScreen({ goToLogin }) {
                 emergencyContact: {
                     name: ecName,
                     relation: ecRelation,
-                    phone: ecPhone,
-                },
+                    phone: ecPhone
+                }
             });
 
-            Alert.alert("Success", "Account created successfully");
+            Alert.alert(
+                "Success",
+                "Account created successfully"
+            );
+
             goToLogin();
 
         } catch (err) {
+
             Alert.alert(
                 "Registration Failed",
-                err?.response?.data?.message || "Something went wrong"
+                err?.response?.data?.message ||
+                "Something went wrong"
             );
+
         } finally {
+
             setLoading(false);
         }
     };
@@ -123,26 +190,57 @@ export default function RegisterScreen({ goToLogin }) {
                         <AppInput
                             placeholder="Full Name *"
                             value={name}
-                            onChangeText={setName}
+                            onChangeText={(text) => {
+                                setName(text);
+                                setErrors(prev => ({
+                                    ...prev,
+                                    name: ""
+                                }));
+                            }}
+                            error={errors.name}
                         />
+
                         <AppInput
                             placeholder="Phone Number *"
                             value={phone}
-                            onChangeText={setPhone}
+                            onChangeText={(text) => {
+                                setPhone(text);
+                                setErrors(prev => ({
+                                    ...prev,
+                                    phone: ""
+                                }));
+                            }}
                             keyboardType="phone-pad"
+                            error={errors.phone}
                         />
+
                         <AppInput
                             placeholder="Email *"
                             value={email}
-                            onChangeText={setEmail}
+                            onChangeText={(text) => {
+                                setEmail(text);
+                                setErrors(prev => ({
+                                    ...prev,
+                                    email: ""
+                                }));
+                            }}
                             keyboardType="email-address"
                             autoCapitalize="none"
+                            error={errors.email}
                         />
+
                         <AppInput
                             placeholder="Password *"
                             value={password}
-                            onChangeText={setPassword}
+                            onChangeText={(text) => {
+                                setPassword(text);
+                                setErrors(prev => ({
+                                    ...prev,
+                                    password: ""
+                                }));
+                            }}
                             secureTextEntry
+                            error={errors.password}
                         />
 
                         {/* ── Gender ── */}
@@ -245,8 +343,15 @@ export default function RegisterScreen({ goToLogin }) {
                         <AppInput
                             placeholder="Pincode"
                             value={pincode}
-                            onChangeText={setPincode}
+                            onChangeText={(text) => {
+                                setPincode(text);
+                                setErrors(prev => ({
+                                    ...prev,
+                                    pincode: ""
+                                }));
+                            }}
                             keyboardType="numeric"
+                            error={errors.pincode}
                         />
 
                         {/* ── Emergency Contact ── */}
@@ -265,8 +370,15 @@ export default function RegisterScreen({ goToLogin }) {
                         <AppInput
                             placeholder="Contact Phone"
                             value={ecPhone}
-                            onChangeText={setEcPhone}
+                            onChangeText={(text) => {
+                                setEcPhone(text);
+                                setErrors(prev => ({
+                                    ...prev,
+                                    ecPhone: ""
+                                }));
+                            }}
                             keyboardType="phone-pad"
+                            error={errors.ecPhone}
                         />
 
                         {/* ── Submit ── */}

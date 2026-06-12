@@ -7,7 +7,7 @@ export const updatePatient = async (
 ) => {
 
     const response = await api.put(
-        `/patient-profile/${uhid}`,
+        `/patient-auth/patient-profile/${uhid}`,
         patientData,
         {
             headers: {

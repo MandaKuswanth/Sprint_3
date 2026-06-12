@@ -7,13 +7,12 @@ import {
     StyleSheet,
     ScrollView,
     TouchableOpacity,
-    TextInput,
     Alert,
     Platform,
 } from "react-native";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
-
+import { Picker } from "@react-native-picker/picker";
 import {
     getDoctors,
     bookAppointment,
@@ -27,6 +26,7 @@ import AppAvatar from "../../components/AppAvatar";
 import ScreenHeader from "../../components/ScreenHeader";
 import AppInput from "../../components/AppInput";
 
+
 const TIME_SLOTS = [
     "09:00 AM",
     "10:00 AM",
@@ -39,17 +39,33 @@ const TIME_SLOTS = [
     "04:00 PM",
 ];
 
+const getTomorrow = () => {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+    return tomorrow;
+};
+
+const toApiDate = (value) => {
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, "0");
+    const day = String(value.getDate()).padStart(2, "0");
+
+    return `${year}-${month}-${day}`;
+};
+
 export default function BookAppointmentScreen({
     token,
     goBack,
     selectedDoctor: preselectedDoctor,
+    goToMyAppointments,
 }) {
     const [doctors, setDoctors] = useState([]);
     const [selectedDoctor, setSelectedDoctor] = useState(
         preselectedDoctor || null
     );
     const [search, setSearch] = useState("");
-    const [date, setDate] = useState(new Date());
+    const [date, setDate] = useState(getTomorrow());
     const [showDatePicker, setShowDatePicker] = useState(false);
     const [timeSlot, setTimeSlot] = useState("");
     const [reason, setReason] = useState("");
@@ -58,6 +74,7 @@ export default function BookAppointmentScreen({
     useEffect(() => {
         loadDoctors();
     }, []);
+
     useEffect(() => {
         if (preselectedDoctor) {
             setSelectedDoctor(preselectedDoctor);
@@ -67,9 +84,13 @@ export default function BookAppointmentScreen({
     const loadDoctors = async () => {
         try {
             const response = await getDoctors(token);
-            setDoctors(response.data); // ✅ response.data is the array
+            setDoctors(response.data || []);
         } catch (err) {
             console.log("DOCTORS ERROR:", err);
+            Alert.alert(
+                "Error",
+                err?.response?.data?.message || "Failed to load doctors"
+            );
         }
     };
 
@@ -79,20 +100,64 @@ export default function BookAppointmentScreen({
             d.specialization?.toLowerCase().includes(search.toLowerCase())
     );
 
+    const availableSlots =
+        Array.isArray(selectedDoctor?.availabilitySlots) &&
+            selectedDoctor.availabilitySlots.length > 0
+            ? selectedDoctor.availabilitySlots
+            : TIME_SLOTS;
+
     const formatDate = (d) => {
         const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
         const months = [
             "Jan", "Feb", "Mar", "Apr", "May", "Jun",
             "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
         ];
+
         return `${days[d.getDay()]} ${months[d.getMonth()]} ${d.getDate()} ${d.getFullYear()}`;
     };
 
     const handleBook = async () => {
+        if (!token) {
+            Alert.alert("Error", "Session expired. Please login again.");
+            return;
+        }
+
         if (!selectedDoctor) {
             Alert.alert("Error", "Please select a doctor");
             return;
         }
+
+        if (!date) {
+            Alert.alert("Error", "Please select appointment date");
+            return;
+        }
+
+        const selectedDate = new Date(date);
+        selectedDate.setHours(0, 0, 0, 0);
+
+        const tomorrow = getTomorrow();
+
+        if (selectedDate < tomorrow) {
+            Alert.alert(
+                "Invalid Date",
+                "Appointments can be booked only from tomorrow onwards"
+            );
+            return;
+        }
+
+        if (selectedDoctor.joiningDate) {
+            const joiningDate = new Date(selectedDoctor.joiningDate);
+            joiningDate.setHours(0, 0, 0, 0);
+
+            if (selectedDate < joiningDate) {
+                Alert.alert(
+                    "Invalid Date",
+                    "Appointment cannot be booked before doctor's joining date"
+                );
+                return;
+            }
+        }
+
         if (!timeSlot) {
             Alert.alert("Error", "Please select a time slot");
             return;
@@ -100,16 +165,22 @@ export default function BookAppointmentScreen({
 
         try {
             setLoading(true);
+
             await bookAppointment(
                 {
                     doctorEmployeeId: selectedDoctor.employeeCode,
-                    date,
+                    date: toApiDate(date),
                     timeSlot,
-                    reason,
+                    reason: reason.trim(),
                 },
                 token
             );
-            Alert.alert("Success", "Appointment booked successfully");
+
+            Alert.alert(
+                "Success",
+                "Appointment request submitted successfully"
+            );
+
             goBack();
         } catch (err) {
             Alert.alert(
@@ -121,13 +192,6 @@ export default function BookAppointmentScreen({
         }
     };
 
-    const doctorInitials = selectedDoctor?.name
-        ?.split(" ")
-        .map((w) => w[0])
-        .join("")
-        .toUpperCase()
-        .slice(0, 2);
-
     return (
         <AppContainer>
             <ScrollView
@@ -135,51 +199,52 @@ export default function BookAppointmentScreen({
                 contentContainerStyle={styles.scroll}
                 keyboardShouldPersistTaps="handled"
             >
-                {/* Page header */}
                 <ScreenHeader
                     title="Appointments"
                     subtitle="Book and view your hospital appointments"
                 />
 
-                {/* Tab row (visual only — Book is active) */}
                 <View style={styles.tabContainer}>
                     <View style={[styles.tab, styles.tabActive]}>
                         <Text style={[styles.tabText, styles.tabTextActive]}>
                             Book Appointment
                         </Text>
                     </View>
+
                     <TouchableOpacity
                         style={styles.tab}
-                        onPress={goBack}
+                        onPress={goToMyAppointments}
                     >
                         <Text style={styles.tabText}>My Appointments</Text>
                     </TouchableOpacity>
                 </View>
 
-                {/* Booking card */}
                 <AppCard style={styles.formCard}>
                     <Text style={styles.formTitle}>Book Appointment</Text>
 
-                    {/* Selected Doctor preview */}
                     {selectedDoctor && (
                         <View>
                             <Text style={styles.fieldLabel}>
                                 Selected Doctor
                             </Text>
+
                             <View style={styles.selectedDoctorBox}>
                                 <AppAvatar
                                     name={selectedDoctor.name}
                                     size={42}
                                 />
+
                                 <Text style={styles.sdName}>
                                     {selectedDoctor.name}
                                 </Text>
+
                                 <View style={styles.selectedBadge}>
                                     <Text style={styles.selectedBadgeText}>
                                         Selected
                                     </Text>
                                 </View>
                             </View>
+
                             <TouchableOpacity
                                 onPress={() => {
                                     setSelectedDoctor(null);
@@ -200,20 +265,38 @@ export default function BookAppointmentScreen({
                         </View>
                     )}
 
-                    {/* Doctor search */}
                     {!selectedDoctor && (
                         <>
                             <Text style={styles.fieldLabel}>Choose Doctor</Text>
 
-                            <AppInput
-                                value={search}
-                                onChangeText={setSearch}
-                                placeholder="Search by name or specialization"
-                            />
+                            <View style={styles.pickerContainer}>
+                                <Picker
+                                    selectedValue={selectedDoctor?.employeeCode || ""}
+                                    onValueChange={(value) => {
+                                        const doctor = doctors.find(
+                                            (d) => d.employeeCode === value
+                                        );
+
+                                        setSelectedDoctor(doctor || null);
+                                        setTimeSlot("");
+                                    }}
+                                >
+                                    <Picker.Item
+                                        label="Select Doctor"
+                                        value=""
+                                    />
+
+                                    {doctors.map((doctor) => (
+                                        <Picker.Item
+                                            key={doctor.employeeCode}
+                                            label={`Dr. ${doctor.name} (${doctor.specialization || "General"})`}
+                                            value={doctor.employeeCode}
+                                        />
+                                    ))}
+                                </Picker>
+                            </View>
                         </>
                     )}
-
-                    {/* Doctor suggestions */}
                     {!selectedDoctor && search.length > 0 && (
                         <View style={styles.suggestBox}>
                             {filteredDoctors.slice(0, 5).map((d) => (
@@ -223,16 +306,19 @@ export default function BookAppointmentScreen({
                                     onPress={() => {
                                         setSelectedDoctor(d);
                                         setSearch("");
+                                        setTimeSlot("");
                                     }}
                                 >
                                     <Text style={styles.suggestName}>
                                         {d.name}
                                     </Text>
+
                                     <Text style={styles.suggestSpec}>
                                         {d.specialization}
                                     </Text>
                                 </TouchableOpacity>
                             ))}
+
                             {filteredDoctors.length === 0 && (
                                 <Text style={styles.noResults}>
                                     No doctors found
@@ -241,8 +327,8 @@ export default function BookAppointmentScreen({
                         </View>
                     )}
 
-                    {/* Appointment Date */}
                     <Text style={styles.fieldLabel}>Appointment Date</Text>
+
                     <TouchableOpacity
                         style={styles.dateBtn}
                         onPress={() => setShowDatePicker(true)}
@@ -251,29 +337,36 @@ export default function BookAppointmentScreen({
                             {formatDate(date)}
                         </Text>
                     </TouchableOpacity>
+
                     <Text style={styles.dateHint}>Date format: YYYY-MM-DD</Text>
 
                     {showDatePicker && (
                         <DateTimePicker
                             value={date}
                             mode="date"
-                            minimumDate={new Date()}
+                            minimumDate={getTomorrow()}
                             onChange={(event, selectedDate) => {
-                                if (Platform.OS === "android")
+                                if (Platform.OS === "android") {
                                     setShowDatePicker(false);
-                                if (selectedDate) setDate(selectedDate);
-                                if (Platform.OS === "ios")
+                                }
+
+                                if (selectedDate) {
+                                    setDate(selectedDate);
+                                    setTimeSlot("");
+                                }
+
+                                if (Platform.OS === "ios") {
                                     setShowDatePicker(false);
+                                }
                             }}
                         />
                     )}
 
-                    {/* Available Time Slots */}
                     <Text style={styles.fieldLabel}>Available Time Slots</Text>
 
                     {selectedDoctor ? (
                         <View style={styles.slotsGrid}>
-                            {TIME_SLOTS.map((slot) => (
+                            {availableSlots.map((slot) => (
                                 <TouchableOpacity
                                     key={slot}
                                     style={[
@@ -303,8 +396,8 @@ export default function BookAppointmentScreen({
                         </View>
                     )}
 
-                    {/* Reason */}
                     <Text style={styles.fieldLabel}>Reason</Text>
+
                     <AppInput
                         value={reason}
                         onChangeText={setReason}
@@ -317,11 +410,11 @@ export default function BookAppointmentScreen({
                         }}
                     />
 
-                    {/* Book button */}
                     <AppButton
                         title={loading ? "Booking..." : "Book Appointment"}
                         onPress={handleBook}
                         style={styles.bookBtn}
+                        disabled={loading}
                     />
                 </AppCard>
             </ScrollView>
@@ -334,7 +427,6 @@ const styles = StyleSheet.create({
         paddingBottom: 40,
     },
 
-    /* tabs */
     tabContainer: {
         flexDirection: "row",
         marginHorizontal: 20,
@@ -365,7 +457,6 @@ const styles = StyleSheet.create({
         color: "#fff",
     },
 
-    /* form card */
     formCard: {
         marginHorizontal: 20,
     },
@@ -383,7 +474,6 @@ const styles = StyleSheet.create({
         marginTop: 16,
     },
 
-    /* selected doctor */
     selectedDoctorBox: {
         flexDirection: "row",
         alignItems: "center",
@@ -411,6 +501,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "700",
     },
+
     suggestBox: {
         backgroundColor: COLORS.white,
         borderRadius: 12,
@@ -440,7 +531,6 @@ const styles = StyleSheet.create({
         textAlign: "center",
     },
 
-    /* date */
     dateBtn: {
         backgroundColor: COLORS.surface,
         borderRadius: 12,
@@ -460,7 +550,6 @@ const styles = StyleSheet.create({
         marginTop: 4,
     },
 
-    /* slots */
     slotsGrid: {
         flexDirection: "row",
         flexWrap: "wrap",
@@ -500,5 +589,12 @@ const styles = StyleSheet.create({
     },
     bookBtn: {
         marginTop: 24,
+    },
+    pickerContainer: {
+        borderWidth: 1,
+        borderColor: COLORS.border,
+        borderRadius: 12,
+        backgroundColor: COLORS.white,
+        overflow: "hidden",
     },
 });

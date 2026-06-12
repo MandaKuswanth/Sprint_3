@@ -42,10 +42,10 @@ export default function EditProfileScreen({
     const [showDobPicker, setShowDobPicker] = useState(false);
 
     // Address
-    const [address, setAddress] = useState(patient?.address || "");
-    const [city, setCity] = useState(patient?.city || "");
-    const [state, setState] = useState(patient?.state || "");
-    const [pincode, setPincode] = useState(patient?.pincode || "");
+    const [street, setStreet] = useState(patient?.address?.street || "");
+    const [city, setCity] = useState(patient?.address?.city || "");
+    const [state, setState] = useState(patient?.address?.state || "");
+    const [pincode, setPincode] = useState(patient?.address?.pincode || "");
 
     // Emergency contact
     const [ecName, setEcName] = useState(
@@ -80,10 +80,12 @@ export default function EditProfileScreen({
                     gender,
                     bloodGroup,
                     dob: dob ? formatDob(dob) : undefined,
-                    address,
-                    city,
-                    state,
-                    pincode,
+                    address:{
+                        street,
+                        city,
+                        state,
+                        pincode
+                    },
                     emergencyContact: {
                         name: ecName,
                         relation: ecRelation,
@@ -225,8 +227,8 @@ export default function EditProfileScreen({
 
                     <AppInput
                         placeholder="Street Address"
-                        value={address}
-                        onChangeText={setAddress}
+                        value={street}
+                        onChangeText={setStreet}
                     />
                     <AppInput
                         placeholder="City"

@@ -12,6 +12,7 @@ exports.createPatient = async (req, res) => {
             phone,
             email,
             gender,
+            bloodGroup,
             dob,
             address,
             emergencyContact
@@ -38,6 +39,7 @@ exports.createPatient = async (req, res) => {
             phone,
             email,
             gender,
+            bloodGroup,
             dob,
             address,
             emergencyContact
@@ -137,6 +139,7 @@ exports.updatePatient = async (req, res) => {
             "phone",
             "email",
             "gender",
+            "bloodGroup",
             "dob",
             "address",
             "emergencyContact"

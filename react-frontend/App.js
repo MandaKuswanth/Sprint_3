@@ -65,19 +65,19 @@ export default function App() {
     const fetchDoctors = async () => {
       if (!token) return;
 
-    try {
-  const response = await getDoctors(token);
+      try {
+        const response = await getDoctors(token);
 
-  console.log("API doctors response:", response);
+        console.log("API doctors response:", response);
 
-  setDoctors(response.data);
-  console.log("Doctors stored:", response.data);
-} catch (err) {
-  console.log(
-    "Doctor fetch error:",
-    err.response?.data || err.message
-  );
-}
+        setDoctors(response.data);
+        console.log("Doctors stored:", response.data);
+      } catch (err) {
+        console.log(
+          "Doctor fetch error:",
+          err.response?.data || err.message
+        );
+      }
     };
 
     fetchDoctors();
@@ -145,7 +145,11 @@ export default function App() {
             selectedDoctor={selectedDoctor}
             goBack={() => {
               setSelectedDoctor(null);
-              setScreen("home");
+              setScreen("myAppointments");
+            }}
+            goToMyAppointments={() => {
+              setSelectedDoctor(null);
+              setScreen("myAppointments");
             }}
           />
         );

@@ -38,11 +38,33 @@ export default function MyAppointmentsScreen({
     }, []);
 
     const loadAppointments = async () => {
+        if (!token) {
+            Alert.alert("Error", "Session expired. Please login again.");
+            setAppointments([]);
+            setLoading(false);
+            return;
+        }
+
         try {
+            setLoading(true);
+
             const response = await getMyAppointments(token);
-            setAppointments(response.data); // ✅ same structure
+
+            const list = Array.isArray(response?.data)
+                ? response.data
+                : [];
+
+            setAppointments(list);
         } catch (err) {
-            console.log(err);
+            console.log("MY APPOINTMENTS ERROR:", err);
+
+            Alert.alert(
+                "Error",
+                err?.response?.data?.message ||
+                "Failed to load appointments"
+            );
+
+            setAppointments([]);
         } finally {
             setLoading(false);
         }
