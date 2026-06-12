@@ -17,6 +17,7 @@ import EditProfileScreen from "./src/screens/patient/EditProfileScreen";
 import BookAppointmentScreen from "./src/screens/patient/BookAppointmentScreen";
 import MyAppointmentsScreen from "./src/screens/patient/MyAppointmentsScreen";
 import EditAppointmentScreen from "./src/screens/patient/EditAppointmentScreen";
+import {saveToken,removeToken, getToken }from "./src/storage/authStorage";
 
 import { getDoctors } from "./src/services/appointmentService";
 
@@ -30,6 +31,7 @@ const TAB_SCREENS = [
 
 export default function App() {
   const [screen, setScreen] = useState("login");
+
   const [patient, setPatient] = useState(null);
   const [token, setToken] = useState(null);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
@@ -38,14 +40,31 @@ export default function App() {
 
   const isLoggedIn = !!token;
 
+  useEffect(() => {
+    const loadToken = async () => {
+      const storedToken = await getToken();
+
+      if (storedToken) {
+        setToken(storedToken);
+        setScreen("home");
+      }
+    };
+
+    loadToken();
+  }, []);
+
   // ── Auth ──────────────────────────────────────────
-  const goToHome = (loginData) => {
+  const goToHome = async (loginData) => {
+    await saveToken(loginData.token);
+
     setPatient(loginData.patient);
     setToken(loginData.token);
     setScreen("home");
   };
 
-  const logout = () => {
+  const logout = async () => {
+    await removeToken();
+
     setPatient(null);
     setToken(null);
     setScreen("login");
