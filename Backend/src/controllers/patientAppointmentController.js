@@ -5,33 +5,40 @@ const User = require("../models/User");
 const ApiResponse = require("../utils/ApiResponse");
 const ApiError = require("../utils/ApiError");
 
+const getDateRange = (dateValue) => {
+    const startOfDay = new Date(dateValue);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(startOfDay);
+    endOfDay.setDate(startOfDay.getDate() + 1);
+
+    return {
+        startOfDay,
+        endOfDay
+    };
+};
+
+const getPatientId = (req) => {
+    return req.user?.UHID || req.user?.uhid || req.user?.patientId;
+};
+
 exports.getDoctors = async (req, res) => {
     try {
-
         const doctorUsers = await User.find({
-            roles: "DOCTOR"
+            roles: "DOCTOR",
+            status: true
         });
 
-        console.log("Doctor Users:", doctorUsers);
-
-        const doctorEmployeeIds =
-            doctorUsers.map(
-                doctor => doctor.employeeId
-            );
-
-        console.log(
-            "Doctor Employee IDs:",
-            doctorEmployeeIds
+        const doctorEmployeeIds = doctorUsers.map(
+            doctor => doctor.employeeId
         );
 
-        const doctors =
-            await Employee.find({
-                employeeCode: {
-                    $in: doctorEmployeeIds
-                }
-            });
-
-        console.log("Doctors:", doctors);
+        const doctors = await Employee.find({
+            employeeCode: {
+                $in: doctorEmployeeIds
+            },
+            status: true
+        });
 
         return res.status(200).json(
             new ApiResponse(
@@ -42,9 +49,6 @@ exports.getDoctors = async (req, res) => {
         );
 
     } catch (err) {
-
-        console.log(err);
-
         return res.status(500).json(
             new ApiError(
                 500,
@@ -55,23 +59,29 @@ exports.getDoctors = async (req, res) => {
 };
 
 exports.bookAppointment = async (req, res) => {
-
     try {
-
         const {
             doctorEmployeeId,
             date,
             timeSlot
         } = req.body;
 
-        const patientId = req.user.UHID;
+        const patientId = getPatientId(req);
+
+        if (!patientId) {
+            return res.status(401).json(
+                new ApiError(
+                    401,
+                    "Patient UHID missing. Please login again."
+                )
+            );
+        }
 
         if (
             !doctorEmployeeId ||
             !date ||
             !timeSlot
         ) {
-
             return res.status(400).json(
                 new ApiError(
                     400,
@@ -86,7 +96,6 @@ exports.bookAppointment = async (req, res) => {
         });
 
         if (!doctor) {
-
             return res.status(404).json(
                 new ApiError(
                     404,
@@ -95,22 +104,24 @@ exports.bookAppointment = async (req, res) => {
             );
         }
 
-        const existingAppointment =
-            await Appointment.findOne({
+        const appointmentDate = new Date(date);
+        appointmentDate.setHours(0, 0, 0, 0);
 
-                doctorEmployeeId,
+        const { startOfDay, endOfDay } = getDateRange(appointmentDate);
 
-                date: new Date(date),
+        const doctorConflict = await Appointment.findOne({
+            doctorEmployeeId,
+            date: {
+                $gte: startOfDay,
+                $lt: endOfDay
+            },
+            timeSlot,
+            status: {
+                $in: ["BOOKED", "IN-PROCESS"]
+            }
+        });
 
-                timeSlot,
-
-                status: {
-                    $in: ["PENDING", "BOOKED", "IN-PROCESS"]
-                }
-            });
-
-        if (existingAppointment) {
-
+        if (doctorConflict) {
             return res.status(409).json(
                 new ApiError(
                     409,
@@ -119,19 +130,34 @@ exports.bookAppointment = async (req, res) => {
             );
         }
 
-        const appointment =
-            await Appointment.create({
+        const patientConflict = await Appointment.findOne({
+            patientId,
+            date: {
+                $gte: startOfDay,
+                $lt: endOfDay
+            },
+            timeSlot,
+            status: {
+                $in: ["PENDING", "BOOKED", "IN-PROCESS"]
+            }
+        });
 
-                patientId,
+        if (patientConflict) {
+            return res.status(409).json(
+                new ApiError(
+                    409,
+                    "You already have an appointment for this date and time slot"
+                )
+            );
+        }
 
-                doctorEmployeeId,
-
-                date,
-
-                timeSlot,
-
-                status: "PENDING"
-            });
+        const appointment = await Appointment.create({
+            patientId,
+            doctorEmployeeId,
+            date: appointmentDate,
+            timeSlot,
+            status: "PENDING"
+        });
 
         return res.status(201).json(
             new ApiResponse(
@@ -142,7 +168,6 @@ exports.bookAppointment = async (req, res) => {
         );
 
     } catch (err) {
-
         return res.status(500).json(
             new ApiError(
                 500,
@@ -153,40 +178,39 @@ exports.bookAppointment = async (req, res) => {
 };
 
 exports.getMyAppointments = async (req, res) => {
-
     try {
+        const patientId = getPatientId(req);
 
-        const patientId = req.user.UHID;
-
-        const appointments =
-            await Appointment.find({
-                patientId
-            }).sort({
-                createdAt: -1
-            });
-
-        const appointmentList =
-            await Promise.all(
-
-                appointments.map(
-                    async appointment => {
-
-                        const doctor =
-                            await Employee.findOne({
-                                employeeCode:
-                                    appointment.doctorEmployeeId
-                            });
-
-                        return {
-                            ...appointment.toObject(),
-                            doctorName:
-                                doctor?.name || "",
-                            specialization:
-                                doctor?.specialization || ""
-                        };
-                    }
+        if (!patientId) {
+            return res.status(401).json(
+                new ApiError(
+                    401,
+                    "Patient UHID missing. Please login again."
                 )
             );
+        }
+
+        const appointments = await Appointment.find({
+            patientId
+        }).sort({
+            createdAt: -1
+        });
+
+        const appointmentList = await Promise.all(
+            appointments.map(
+                async appointment => {
+                    const doctor = await Employee.findOne({
+                        employeeCode: appointment.doctorEmployeeId
+                    });
+
+                    return {
+                        ...appointment.toObject(),
+                        doctorName: doctor?.name || "",
+                        specialization: doctor?.specialization || ""
+                    };
+                }
+            )
+        );
 
         return res.status(200).json(
             new ApiResponse(
@@ -197,7 +221,6 @@ exports.getMyAppointments = async (req, res) => {
         );
 
     } catch (err) {
-
         return res.status(500).json(
             new ApiError(
                 500,
@@ -208,9 +231,7 @@ exports.getMyAppointments = async (req, res) => {
 };
 
 exports.updateMyAppointment = async (req, res) => {
-
     try {
-
         const { appointmentId } = req.params;
 
         const {
@@ -218,14 +239,23 @@ exports.updateMyAppointment = async (req, res) => {
             timeSlot
         } = req.body;
 
-        const appointment =
-            await Appointment.findOne({
-                appointmentId,
-                patientId: req.user.UHID
-            });
+        const patientId = getPatientId(req);
+
+        if (!patientId) {
+            return res.status(401).json(
+                new ApiError(
+                    401,
+                    "Patient UHID missing. Please login again."
+                )
+            );
+        }
+
+        const appointment = await Appointment.findOne({
+            appointmentId,
+            patientId
+        });
 
         if (!appointment) {
-
             return res.status(404).json(
                 new ApiError(
                     404,
@@ -235,7 +265,6 @@ exports.updateMyAppointment = async (req, res) => {
         }
 
         if (appointment.status !== "PENDING") {
-
             return res.status(400).json(
                 new ApiError(
                     400,
@@ -244,27 +273,36 @@ exports.updateMyAppointment = async (req, res) => {
             );
         }
 
-        const existingAppointment =
-            await Appointment.findOne({
+        if (!date || !timeSlot) {
+            return res.status(400).json(
+                new ApiError(
+                    400,
+                    "Date and time slot are required"
+                )
+            );
+        }
 
-                _id: {
-                    $ne: appointment._id
-                },
+        const appointmentDate = new Date(date);
+        appointmentDate.setHours(0, 0, 0, 0);
 
-                doctorEmployeeId:
-                    appointment.doctorEmployeeId,
+        const { startOfDay, endOfDay } = getDateRange(appointmentDate);
 
-                date: new Date(date),
+        const doctorConflict = await Appointment.findOne({
+            _id: {
+                $ne: appointment._id
+            },
+            doctorEmployeeId: appointment.doctorEmployeeId,
+            date: {
+                $gte: startOfDay,
+                $lt: endOfDay
+            },
+            timeSlot,
+            status: {
+                $in: ["BOOKED", "IN-PROCESS"]
+            }
+        });
 
-                timeSlot,
-
-                status: {
-                    $in: ["PENDING", "BOOKED", "IN-PROCESS"]
-                }
-            });
-
-        if (existingAppointment) {
-
+        if (doctorConflict) {
             return res.status(409).json(
                 new ApiError(
                     409,
@@ -273,7 +311,31 @@ exports.updateMyAppointment = async (req, res) => {
             );
         }
 
-        appointment.date = date;
+        const patientConflict = await Appointment.findOne({
+            _id: {
+                $ne: appointment._id
+            },
+            patientId,
+            date: {
+                $gte: startOfDay,
+                $lt: endOfDay
+            },
+            timeSlot,
+            status: {
+                $in: ["PENDING", "BOOKED", "IN-PROCESS"]
+            }
+        });
+
+        if (patientConflict) {
+            return res.status(409).json(
+                new ApiError(
+                    409,
+                    "You already have an appointment for this date and time slot"
+                )
+            );
+        }
+
+        appointment.date = appointmentDate;
         appointment.timeSlot = timeSlot;
 
         await appointment.save();
@@ -287,7 +349,6 @@ exports.updateMyAppointment = async (req, res) => {
         );
 
     } catch (err) {
-
         return res.status(500).json(
             new ApiError(
                 500,
@@ -302,20 +363,60 @@ exports.cancelMyAppointment = async (req, res) => {
         const {
             appointmentId
         } = req.params;
+
+        const patientId = getPatientId(req);
+
+        if (!patientId) {
+            return res.status(401).json(
+                new ApiError(
+                    401,
+                    "Patient UHID missing. Please login again."
+                )
+            );
+        }
+
         const appointment = await Appointment.findOne({
             appointmentId,
-            patientId: req.user.UHID
+            patientId
         });
+
         if (!appointment) {
-            return res.status(404).json(new ApiError(404, "Appointment not found"));
+            return res.status(404).json(
+                new ApiError(
+                    404,
+                    "Appointment not found"
+                )
+            );
         }
+
         if (appointment.status === "COMPLETED") {
-            return res.status(400).json(new ApiError(400, "Completed appointment cannot be cancelled"));
+            return res.status(400).json(
+                new ApiError(
+                    400,
+                    "Completed appointment cannot be cancelled"
+                )
+            );
         }
+
         appointment.status = "CANCELLED";
+        appointment.cancellationReason = "Cancelled by patient";
+
         await appointment.save();
-        return res.status(200).json(new ApiResponse(200, appointment, "Appointment cancelled successfully"));
+
+        return res.status(200).json(
+            new ApiResponse(
+                200,
+                appointment,
+                "Appointment cancelled successfully"
+            )
+        );
+
     } catch (err) {
-        return res.status(500).json(new ApiError(500, err.message));
+        return res.status(500).json(
+            new ApiError(
+                500,
+                err.message
+            )
+        );
     }
 };
