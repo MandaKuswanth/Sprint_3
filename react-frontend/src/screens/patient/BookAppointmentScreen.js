@@ -12,7 +12,7 @@ import {
 } from "react-native";
 
 import DateTimePicker from "@react-native-community/datetimepicker";
-
+import { Picker } from "@react-native-picker/picker";
 import {
     getDoctors,
     bookAppointment,
@@ -25,6 +25,7 @@ import AppButton from "../../components/AppButton";
 import AppAvatar from "../../components/AppAvatar";
 import ScreenHeader from "../../components/ScreenHeader";
 import AppInput from "../../components/AppInput";
+
 
 const TIME_SLOTS = [
     "09:00 AM",
@@ -101,7 +102,7 @@ export default function BookAppointmentScreen({
 
     const availableSlots =
         Array.isArray(selectedDoctor?.availabilitySlots) &&
-        selectedDoctor.availabilitySlots.length > 0
+            selectedDoctor.availabilitySlots.length > 0
             ? selectedDoctor.availabilitySlots
             : TIME_SLOTS;
 
@@ -268,14 +269,34 @@ export default function BookAppointmentScreen({
                         <>
                             <Text style={styles.fieldLabel}>Choose Doctor</Text>
 
-                            <AppInput
-                                value={search}
-                                onChangeText={setSearch}
-                                placeholder="Search by name or specialization"
-                            />
+                            <View style={styles.pickerContainer}>
+                                <Picker
+                                    selectedValue={selectedDoctor?.employeeCode || ""}
+                                    onValueChange={(value) => {
+                                        const doctor = doctors.find(
+                                            (d) => d.employeeCode === value
+                                        );
+
+                                        setSelectedDoctor(doctor || null);
+                                        setTimeSlot("");
+                                    }}
+                                >
+                                    <Picker.Item
+                                        label="Select Doctor"
+                                        value=""
+                                    />
+
+                                    {doctors.map((doctor) => (
+                                        <Picker.Item
+                                            key={doctor.employeeCode}
+                                            label={`Dr. ${doctor.name} (${doctor.specialization || "General"})`}
+                                            value={doctor.employeeCode}
+                                        />
+                                    ))}
+                                </Picker>
+                            </View>
                         </>
                     )}
-
                     {!selectedDoctor && search.length > 0 && (
                         <View style={styles.suggestBox}>
                             {filteredDoctors.slice(0, 5).map((d) => (
@@ -351,7 +372,7 @@ export default function BookAppointmentScreen({
                                     style={[
                                         styles.slotChip,
                                         timeSlot === slot &&
-                                            styles.slotChipActive,
+                                        styles.slotChipActive,
                                     ]}
                                     onPress={() => setTimeSlot(slot)}
                                 >
@@ -359,7 +380,7 @@ export default function BookAppointmentScreen({
                                         style={[
                                             styles.slotText,
                                             timeSlot === slot &&
-                                                styles.slotTextActive,
+                                            styles.slotTextActive,
                                         ]}
                                     >
                                         {slot}
@@ -568,5 +589,12 @@ const styles = StyleSheet.create({
     },
     bookBtn: {
         marginTop: 24,
+    },
+    pickerContainer: {
+        borderWidth: 1,
+        borderColor: COLORS.border,
+        borderRadius: 12,
+        backgroundColor: COLORS.white,
+        overflow: "hidden",
     },
 });
