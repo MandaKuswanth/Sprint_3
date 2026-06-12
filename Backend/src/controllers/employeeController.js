@@ -335,6 +335,15 @@ exports.login = async (req, res) => {
             );
         }
 
+        if (!user.isEmployee) {
+            return res.status(403).json(
+                new ApiError(
+                    403,
+                    "Patient accounts cannot login through the employee portal"
+                )
+            );
+        }
+
         const employee = await Employee.findOne({
             employeeCode: user.employeeId
         });
