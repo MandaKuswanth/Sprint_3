@@ -8,6 +8,19 @@ const ApiError = require("../utils/ApiError");
 
 const sendEmail = require("../utils/sendEmail");
 
+const getDateRange = (dateValue) => {
+    const startOfDay = new Date(dateValue);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(startOfDay);
+    endOfDay.setDate(startOfDay.getDate() + 1);
+
+    return {
+        startOfDay,
+        endOfDay
+    };
+};
+
 exports.cancelPatientAppointments = async (patientId, reason) => {
     const result = await Appointment.updateMany(
         {
@@ -19,14 +32,13 @@ exports.cancelPatientAppointments = async (patientId, reason) => {
         {
             $set: {
                 status: "CANCELLED",
-                reason
+                cancellationReason: reason
             }
         }
     );
 
     return result.modifiedCount;
 };
-
 
 exports.createAppointment = async (req, res) => {
     try {
@@ -111,17 +123,24 @@ exports.createAppointment = async (req, res) => {
                 return res.status(400).json(
                     new ApiError(
                         400,
-                        `Appointment cannot be booked before doctor's joining date`
+                        "Appointment cannot be booked before doctor's joining date"
                     )
                 );
             }
         }
 
+        const { startOfDay, endOfDay } = getDateRange(appointmentDate);
+
         const existingAppointment = await Appointment.findOne({
             doctorEmployeeId,
-            date: appointmentDate,
+            date: {
+                $gte: startOfDay,
+                $lt: endOfDay
+            },
             timeSlot,
-            status: { $in: ["BOOKED", "IN-PROCESS", "PENDING"] }
+            status: {
+                $in: ["BOOKED", "IN-PROCESS"]
+            }
         });
 
         if (existingAppointment) {
@@ -147,18 +166,18 @@ exports.createAppointment = async (req, res) => {
                 to: patient.email,
                 subject: "Appointment Confirmation - HMS",
                 html: `
-          <h2>Appointment Confirmed</h2>
+                    <h2>Appointment Confirmed</h2>
 
-          <p>Your appointment has been successfully booked.</p>
+                    <p>Your appointment has been successfully booked.</p>
 
-          <p><strong>Doctor:</strong> Dr. ${doctor.name}</p>
-          <p><strong>Date:</strong> ${date}</p>
-          <p><strong>Time:</strong> ${timeSlot}</p>
+                    <p><strong>Doctor:</strong> Dr. ${doctor.name}</p>
+                    <p><strong>Date:</strong> ${appointmentDate.toDateString()}</p>
+                    <p><strong>Time:</strong> ${timeSlot}</p>
 
-          <p>Please arrive at least 10 minutes before your scheduled time.</p>
+                    <p>Please arrive at least 10 minutes before your scheduled time.</p>
 
-          <p>Thank you,<br/>HMS Team</p>
-        `
+                    <p>Thank you,<br/>HMS Team</p>
+                `
             });
         }
 
@@ -177,7 +196,6 @@ exports.createAppointment = async (req, res) => {
         );
     }
 };
-
 
 exports.getAppointments = async (req, res) => {
     try {
@@ -236,6 +254,7 @@ exports.getAppointments = async (req, res) => {
                     timeSlot: appointment.timeSlot,
                     status: appointment.status,
                     reason: appointment.reason || "",
+                    cancellationReason: appointment.cancellationReason || "",
 
                     createdByEmployeeId: appointment.createdByEmployeeId || null,
 
@@ -287,7 +306,6 @@ exports.getAppointmentById = async (req, res) => {
     }
 };
 
-
 exports.updateAppointment = async (req, res) => {
     try {
         const { appointmentId } = req.params;
@@ -320,6 +338,7 @@ exports.updateAppointment = async (req, res) => {
 
         if (date) {
             appointment.date = new Date(date);
+            appointment.date.setHours(0, 0, 0, 0);
         }
 
         if (timeSlot) {
@@ -327,12 +346,19 @@ exports.updateAppointment = async (req, res) => {
         }
 
         if (date || timeSlot) {
+            const { startOfDay, endOfDay } = getDateRange(appointment.date);
+
             const existing = await Appointment.findOne({
                 _id: { $ne: appointment._id },
                 doctorEmployeeId: appointment.doctorEmployeeId,
-                date: appointment.date,
+                date: {
+                    $gte: startOfDay,
+                    $lt: endOfDay
+                },
                 timeSlot: appointment.timeSlot,
-                status: { $in: ["BOOKED", "IN-PROCESS"] }
+                status: {
+                    $in: ["BOOKED", "IN-PROCESS"]
+                }
             });
 
             if (existing) {
@@ -358,7 +384,6 @@ exports.updateAppointment = async (req, res) => {
         );
     }
 };
-
 
 exports.deleteAppointment = async (req, res) => {
     try {
@@ -388,6 +413,7 @@ exports.deleteAppointment = async (req, res) => {
         );
     }
 };
+
 exports.approveAppointment = async (req, res) => {
     try {
         const { appointmentId } = req.params;
@@ -413,6 +439,60 @@ exports.approveAppointment = async (req, res) => {
         const doctor = await Employee.findOne({
             employeeCode: appointment.doctorEmployeeId
         });
+
+        const { startOfDay, endOfDay } = getDateRange(appointment.date);
+
+        const conflict = await Appointment.findOne({
+            _id: { $ne: appointment._id },
+            doctorEmployeeId: appointment.doctorEmployeeId,
+            date: {
+                $gte: startOfDay,
+                $lt: endOfDay
+            },
+            timeSlot: appointment.timeSlot,
+            status: {
+                $in: ["BOOKED", "IN-PROCESS"]
+            }
+        });
+
+        if (conflict) {
+            appointment.status = "CANCELLED";
+            appointment.cancellationReason =
+                "Requested slot became unavailable before approval";
+
+            await appointment.save();
+
+            if (patient?.email) {
+                await sendEmail({
+                    to: patient.email,
+                    subject: "Appointment Request Cancelled - HMS",
+                    html: `
+                        <h2>Appointment Request Cancelled</h2>
+
+                        <p>Hello ${patient.name},</p>
+
+                        <p>Your appointment request could not be approved because the requested slot is no longer available.</p>
+
+                        <p><strong>Appointment ID:</strong> ${appointment.appointmentId}</p>
+                        <p><strong>Doctor:</strong> Dr. ${doctor?.name || "N/A"}</p>
+                        <p><strong>Date:</strong> ${appointment.date?.toDateString()}</p>
+                        <p><strong>Time:</strong> ${appointment.timeSlot}</p>
+
+                        <p>Please book another available slot.</p>
+
+                        <p>Thank you,<br/>HMS Team</p>
+                    `
+                });
+            }
+
+            return res.status(409).json(
+                new ApiResponse(
+                    409,
+                    appointment,
+                    "Requested slot is no longer available. Appointment request has been cancelled."
+                )
+            );
+        }
 
         appointment.status = "BOOKED";
         appointment.createdByEmployeeId = req.user.employeeId || req.user.id;
@@ -456,6 +536,7 @@ exports.approveAppointment = async (req, res) => {
         );
     }
 };
+
 exports.rejectAppointment = async (req, res) => {
     try {
         const { appointmentId } = req.params;
@@ -483,7 +564,8 @@ exports.rejectAppointment = async (req, res) => {
         });
 
         appointment.status = "CANCELLED";
-        appointment.cancellationReason = "Appointment request rejected by hospital staff";
+        appointment.cancellationReason =
+            "Appointment request rejected by hospital staff";
 
         await appointment.save();
 

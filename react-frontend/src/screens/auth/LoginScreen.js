@@ -40,15 +40,44 @@ export default function LoginScreen({
     const [loading, setLoading] =
         useState(false);
 
+    const [errors, setErrors] = useState({});
+
+    const validateForm = () => {
+
+        const newErrors = {};
+
+        if (!email.trim()) {
+
+            newErrors.email =
+                "Email is required";
+
+        } else if (
+            !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)
+        ) {
+
+            newErrors.email =
+                "Enter a valid email address";
+        }
+
+        if (!password) {
+
+            newErrors.password =
+                "Password is required";
+
+        } else if (password.length < 8) {
+
+            newErrors.password =
+                "Password must be at least 8 characters";
+        }
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
+
     const handleLogin = async () => {
 
-        if (!email || !password) {
-
-            Alert.alert(
-                "Error",
-                "Please enter email and password"
-            );
-
+        if (!validateForm()) {
             return;
         }
 
@@ -110,16 +139,34 @@ export default function LoginScreen({
                     <AppInput
                         placeholder="Email"
                         value={email}
-                        onChangeText={setEmail}
+                        onChangeText={(text) => {
+
+                            setEmail(text);
+
+                            setErrors(prev => ({
+                                ...prev,
+                                email: ""
+                            }));
+                        }}
                         keyboardType="email-address"
                         autoCapitalize="none"
+                        error={errors.email}
                     />
 
                     <AppInput
                         placeholder="Password"
                         value={password}
-                        onChangeText={setPassword}
+                        onChangeText={(text) => {
+
+                            setPassword(text);
+
+                            setErrors(prev => ({
+                                ...prev,
+                                password: ""
+                            }));
+                        }}
                         secureTextEntry
+                        error={errors.password}
                     />
 
                     <AppButton
