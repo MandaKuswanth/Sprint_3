@@ -336,9 +336,9 @@ exports.login = async (req, res) => {
         }
 
         if (!user.isEmployee) {
-            return res.status(403).json(
+            return res.status(409).json(
                 new ApiError(
-                    403,
+                    409,
                     "Patient accounts cannot login through the employee portal"
                 )
             );
