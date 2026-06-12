@@ -59,7 +59,7 @@ export default function EditProfileScreen({
     );
 
     const [loading, setLoading] = useState(false);
-
+    const [errors, setErrors] = useState({});
     const formatDob = (date) => {
         if (!date) return "";
         const y = date.getFullYear();
@@ -67,8 +67,51 @@ export default function EditProfileScreen({
         const d = String(date.getDate()).padStart(2, "0");
         return `${y}-${m}-${d}`;
     };
+    const validateForm = () => {
 
+        const newErrors = {};
+
+        if (!name.trim()) {
+            newErrors.name = "Name is required";
+        } else if (!/^[A-Za-z ]+$/.test(name.trim())) {
+            newErrors.name = "Only alphabets are allowed";
+        }
+
+        if (!phone.trim()) {
+            newErrors.phone = "Phone number is required";
+        } else if (!/^[6-9]\d{9}$/.test(phone)) {
+            newErrors.phone = "Enter a valid 10 digit mobile number";
+        }
+
+        if (!gender) {
+            newErrors.gender = "Please select gender";
+        }
+
+        if (!dob) {
+            newErrors.dob = "Date of birth is required";
+        }
+
+        if (pincode && !/^\d{6}$/.test(pincode)) {
+            newErrors.pincode = "Pincode must contain 6 digits";
+        }
+
+        if (
+            ecPhone &&
+            !/^[6-9]\d{9}$/.test(ecPhone)
+        ) {
+            newErrors.ecPhone =
+                "Enter a valid 10-digit emergency contact number";
+        }
+
+        setErrors(newErrors);
+
+        return Object.keys(newErrors).length === 0;
+    };
     const handleUpdate = async () => {
+        if (!validateForm()) {
+            return;
+        }
+
         try {
             setLoading(true);
 
@@ -80,7 +123,7 @@ export default function EditProfileScreen({
                     gender,
                     bloodGroup,
                     dob: dob ? formatDob(dob) : undefined,
-                    address:{
+                    address: {
                         street,
                         city,
                         state,
@@ -131,13 +174,27 @@ export default function EditProfileScreen({
                     <AppInput
                         placeholder="Full Name"
                         value={name}
-                        onChangeText={setName}
+                        onChangeText={(text) => {
+                            setName(text);
+                            setErrors(prev => ({
+                                ...prev,
+                                name: ""
+                            }));
+                        }}
+                        error={errors.name}
                     />
                     <AppInput
                         placeholder="Phone Number"
                         value={phone}
-                        onChangeText={setPhone}
+                        onChangeText={(text) => {
+                            setPhone(text);
+                            setErrors(prev => ({
+                                ...prev,
+                                phone: ""
+                            }));
+                        }}
                         keyboardType="phone-pad"
+                        error={errors.phone}
                     />
 
                     {/* Gender */}
@@ -243,8 +300,15 @@ export default function EditProfileScreen({
                     <AppInput
                         placeholder="Pincode"
                         value={pincode}
-                        onChangeText={setPincode}
+                        onChangeText={(text) => {
+                            setPincode(text);
+                            setErrors(prev => ({
+                                ...prev,
+                                pincode: ""
+                            }));
+                        }}
                         keyboardType="numeric"
+                        error={errors.pincode}
                     />
                 </AppCard>
 
@@ -265,8 +329,15 @@ export default function EditProfileScreen({
                     <AppInput
                         placeholder="Contact Phone"
                         value={ecPhone}
-                        onChangeText={setEcPhone}
+                        onChangeText={(text) => {
+                            setEcPhone(text);
+                            setErrors(prev => ({
+                                ...prev,
+                                ecPhone: ""
+                            }));
+                        }}
                         keyboardType="phone-pad"
+                        error={errors.ecPhone}
                     />
                 </AppCard>
 
